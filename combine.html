@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizards and Witches Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic body styling */
+        body {
+            margin: 0;
+            padding: 0; /* Remove bottom padding */
+            font-family: 'Roboto', sans-serif; /* Default font */
+            /* Background image will be set dynamically via JS */
+            background-color: #1a1a2e; /* Dark fallback color */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Keep background fixed during scroll */
+            display: flex;
+            flex-direction: column; /* Stack auth container and watermark */
+            justify-content: flex-start; /* Align content to the top */
+            align-items: center; /* Center items horizontally */
+            min-height: 100vh; /* Ensure background covers viewport */
+            padding-top: 5vh; /* Add padding to push content down slightly */
+            padding-bottom: 5vh; /* Reset bottom padding */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-y: auto; /* Allow vertical scroll if needed */
+            position: relative; /* Needed for pseudo-elements and overlays */
+            transition: background-image 0.5s ease-in-out; /* Smooth background transition */
+        }
+
+        /* Apply the MedievalSharp font if loaded */
+        .font-magic {
+             font-family: 'MedievalSharp', cursive; /* Magical font */
+        }
+
+        /* --- Background Effects (Flash, Fog, Lightning, Rays) --- */
+        /* Styles remain the same as previous version */
+        #background-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: rgba(255, 0, 0, 0.15); animation: backgroundFlash 4s infinite linear alternate; }
+        @keyframes backgroundFlash { 0% { background-color: rgba(255, 0, 0, 0.15); } 100% { background-color: rgba(0, 255, 0, 0.15); } }
+        body::before, body::after { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(200, 200, 200, 0.1) 0%, rgba(200, 200, 200, 0) 70%), radial-gradient(ellipse at top left, rgba(180, 180, 180, 0.15) 0%, rgba(180, 180, 180, 0) 60%), radial-gradient(ellipse at bottom right, rgba(190, 190, 190, 0.15) 0%, rgba(190, 190, 190, 0) 60%); background-repeat: no-repeat; background-size: 200% 200%, 150% 150%, 180% 180%; opacity: 0; z-index: 1; pointer-events: none; animation: fogAnim 30s linear infinite alternate; }
+        body::after { background-position: 50% 50%, 0% 100%, 100% 0%; animation: fogAnim2 35s linear infinite alternate; animation-delay: -15s; }
+        @keyframes fogAnim { 0% { opacity: 0.4; background-position: 0% 0%, 100% 100%, 0% 100%; transform: scale(1); } 50% { opacity: 0.6; } 100% { opacity: 0.4; background-position: 100% 100%, 0% 0%, 100% 0%; transform: scale(1.05); } }
+        @keyframes fogAnim2 { 0% { opacity: 0.5; background-position: 50% 50%, 0% 100%, 100% 0%; transform: scale(1.02) translateX(-2%); } 50% { opacity: 0.7; } 100% { opacity: 0.5; background-position: 20% 80%, 100% 0%, 0% 100%; transform: scale(1) translateX(2%); } }
+        #lightning-container-left { position: fixed; top: 0; left: 0; bottom: 0; width: 25%; pointer-events: none; z-index: 1; overflow: hidden; }
+        .lightning-segment { position: absolute; background: linear-gradient(90deg, rgba(0, 255, 0, 0), rgba(128, 255, 128, 0.8), rgba(0, 255, 0, 0)); box-shadow: 0 0 8px 3px rgba(173, 255, 47, 0.7); opacity: 0; animation: lightningStrike 0.2s linear forwards; }
+        @keyframes lightningStrike { 0% { opacity: 0; } 10%, 90% { opacity: 1; } 100% { opacity: 0; } }
+        .light-ray-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
+        .light-ray { position: absolute; left: -100%; width: 100%; height: 3px; opacity: 0.4; filter: blur(2px); animation: moveRay 10s linear infinite; }
+        .ray-green { background: linear-gradient(to right, transparent, rgba(0, 255, 0, 0.6), transparent); top: 30%; animation-delay: 0s; animation-duration: 8s; }
+        .ray-red { background: linear-gradient(to right, transparent, rgba(255, 0, 0, 0.6), transparent); top: 65%; animation-delay: -4s; animation-duration: 12s; }
+        @keyframes moveRay { 0% { transform: translateX(0); opacity: 0.4; } 50% { opacity: 0.6; } 100% { transform: translateX(200%); opacity: 0.4; } }
+        .fireworks-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; display: none; overflow: hidden; }
+        .particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; pointer-events: none; opacity: 0; animation: explode 1s ease-out forwards; }
+        @keyframes explode { 0% { opacity: 1; transform: translateY(0) scale(0.3); box-shadow: 0 0 5px currentColor, 0 0 10px currentColor; } 50% { transform: translateY(-60px) scale(1); box-shadow: 0 0 15px currentColor, 0 0 25px currentColor; } 100% { opacity: 0; transform: translateY(-100px) scale(0); box-shadow: none; } }
+        /* --- Background Effects End --- */
+
+        /* Container for login/registration forms */
+        .container {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
+            width: 340px;
+            text-align: center;
+            max-width: 90%;
+            z-index: 3; /* Above watermark */
+            margin-bottom: 20px; /* Space between container and bottom */
+            position: relative; /* Keep relative for positioning context */
+        }
+        .container h2.form-header { margin-bottom: 25px; color: #f5f5f5; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 6px; color: #ccc; font-size: 0.9em; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #555; border-radius: 5px; box-sizing: border-box; font-size: 1em; background-color: rgba(255, 255, 255, 0.9); color: #222; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+        /* Style specifically for email input to allow browser validation message */
+        .input-group input[type="email"]:invalid {
+             border-color: #ff6b6b; /* Indicate invalid email format */
+        }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: #ffd700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.6); }
+        .action-button { background: linear-gradient(to bottom, rgba(100, 0, 150, 0.8), rgba(60, 0, 100, 0.9)); color: white; padding: 12px 20px; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 5px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; width: 100%; margin-top: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .action-button:hover { background: linear-gradient(to bottom, rgba(120, 40, 170, 0.9), rgba(80, 20, 120, 1)); border-color: rgba(255, 255, 255, 0.9); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+        .link-group { margin-top: 18px; font-size: 0.9em; }
+        .link-group a { color: #f5deb3; text-decoration: none; transition: color 0.3s ease; }
+        .link-group a:hover { text-decoration: underline; color: #fff; }
+
+        /* Message styling (error and success) */
+        .message-box {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            display: none; /* Hidden by default */
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .message-box.error {
+             color: #ff6b6b;
+             background-color: rgba(50, 0, 0, 0.7);
+             border-color: rgba(255, 107, 107, 0.5);
+        }
+        .message-box.success {
+             color: #90ee90; /* Light green */
+             background-color: rgba(0, 50, 0, 0.7);
+             border-color: rgba(144, 238, 144, 0.5);
+        }
+
+        /* Form section visibility */
+        .form-section { display: none; padding: 10px 0 0 0; }
+        .form-section.active { display: block; }
+        #registration-form { text-align: left; }
+
+        /* Keep logged in style */
+        .keep-logged-in {
+            display: flex;
+            align-items: center;
+            margin-top: 15px; /* Space above */
+            margin-bottom: 10px; /* Space below */
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        .keep-logged-in input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            /* Optional: Style checkbox appearance */
+            accent-color: #ffd700; /* Gold color for the check */
+        }
+        .keep-logged-in label {
+            cursor: pointer;
+            font-weight: normal; /* Override bold from input-group label */
+            margin-bottom: 0; /* Override */
+        }
+
+
+        /* Loading indicator style */
+        .loading-indicator {
+            display: none; /* Hidden by default */
+            color: #f5deb3; /* Wheat color */
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* --- Styling for Main Content Containers --- */
+        /* Common styles for all main view containers */
+        .main-view-container {
+             background-color: rgba(10, 10, 20, 0.85);
+             padding: 35px 45px;
+             border-radius: 15px;
+             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+             width: 90%;
+             max-width: 750px;
+             text-align: center;
+             display: none; /* Hidden by default */
+             flex-direction: column;
+             align-items: center;
+             z-index: 3; /* Above watermark */
+             border: 1px solid rgba(255, 215, 0, 0.7);
+             margin-bottom: 20px;
+             position: relative; /* Needed for z-index */
+             color: #e0e0e0;
+        }
+        /* Override for congratulation container */
+        #congratulation-container { background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); max-width: 550px; color: #333; border: none; }
+
+        /* --- Welcome Container Specific Styles --- */
+        #welcome-container h1 { color: #ffd700; margin-bottom: 25px; font-size: 2.8em; text-shadow: 2px 2px 5px rgba(0,0,0,0.9); word-break: break-word; }
+        #welcome-username { font-weight: bold; }
+        #welcome-container p { font-size: 1.2em; margin-bottom: 35px; line-height: 1.7; }
+        .hogwarts-crest { width: 160px; height: auto; margin-bottom: 30px; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)); }
+        .continue-journey-button { background: linear-gradient(to bottom, rgba(0, 100, 0, 0.8), rgba(0, 60, 0, 0.9)); color: white; padding: 12px 25px; border: 1px solid rgba(150, 255, 150, 0.6); border-radius: 5px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; margin-top: 25px; width: auto; min-width: 130px; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .continue-journey-button:hover { background: linear-gradient(to bottom, rgba(40, 130, 40, 0.9), rgba(20, 90, 20, 1)); border-color: rgba(180, 255, 180, 0.9); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+
+        /* --- Congratulation Container Specific Styles --- */
+        #congratulation-container .owl-icon { font-size: 4rem; margin-bottom: 15px; color: #8B4513; }
+        #congratulation-container h1 { font-family: 'MedievalSharp', cursive; font-size: 2.5em; color: #5D4037; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); word-break: break-word; }
+        /* Style for the username span in congrats message */
+        #congrats-username {
+             font-weight: bold; /* Make username stand out */
+             /* Inherits color from h1 */
+        }
+        #congratulation-container p { font-size: 1.1em; color: #4E342E; margin-bottom: 25px; line-height: 1.6; }
+        .proceed-button { background-color: #D4AF37; color: #4E342E; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; text-shadow: 1px 1px 1px rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .proceed-button:hover { background-color: #C09B2D; transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.4); }
+
+        /* --- Journey Container Specific Styles --- */
+        #journey-container h1 { color: #f0e68c; margin-bottom: 20px; font-size: 2.5em; text-shadow: 2px 2px 5px rgba(0,0,0,0.7); }
+        #journey-container p { font-size: 1.1em; margin-bottom: 20px; line-height: 1.6; color: #ddd; }
+        #journey-container .journey-image { /* Changed class name */
+             border-radius: 8px;
+             margin-bottom: 25px;
+             max-width: 80%;
+             height: auto;
+             border: 1px solid rgba(255, 215, 0, 0.5); /* Add subtle border */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.5); /* Add shadow */
+        }
+        .house-choice-container { margin-top: 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .house-choice-button { color: white; padding: 10px 18px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.3); min-width: 120px; }
+        .house-gryffindor { background-color: rgba(116, 0, 1, 0.8); border-color: rgba(213, 166, 0, 0.7); }
+        .house-hufflepuff { background-color: rgba(236, 185, 57, 0.9); border-color: rgba(48, 48, 48, 0.7); color: #303030; text-shadow: none;}
+        .house-ravenclaw { background-color: rgba(34, 47, 91, 0.8); border-color: rgba(148, 107, 45, 0.7); }
+        .house-slytherin { background-color: rgba(26, 71, 42, 0.8); border-color: rgba(170, 170, 170, 0.7); }
+        .house-choice-button:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+        .house-gryffindor:hover { background-color: rgba(140, 0, 1, 0.9); }
+        .house-hufflepuff:hover { background-color: rgba(240, 195, 70, 1); }
+        .house-ravenclaw:hover { background-color: rgba(44, 57, 101, 0.9); }
+        .house-slytherin:hover { background-color: rgba(36, 81, 52, 0.9); }
+
+        /* --- House Page Specific Styles --- */
+        .house-page h2 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+        }
+        .house-page p {
+            font-size: 1.2em;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            max-width: 90%;
+        }
+        /* House specific text colors */
+        #gryffindor-page h2 { color: #d5a600; } /* Gold */
+        #hufflepuff-page h2 { color: #303030; } /* Dark Grey/Black */
+        #ravenclaw-page h2 { color: #946b2d; } /* Bronze */
+        #slytherin-page h2 { color: #aaaaaa; } /* Silver */
+
+        /* Style for the return/back buttons */
+        .return-button {
+            background: linear-gradient(to bottom, rgba(100, 100, 100, 0.8), rgba(60, 60, 60, 0.9));
+            color: white;
+            padding: 12px 25px;
+            border: 1px solid rgba(200, 200, 200, 0.6);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 25px;
+            width: auto;
+            min-width: 130px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .return-button:hover {
+             background: linear-gradient(to bottom, rgba(130, 130, 130, 0.9), rgba(90, 90, 90, 1));
+            border-color: rgba(220, 220, 220, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+
+        /* --- Container Visibility Control --- */
+        /* Hide all main view containers by default */
+        #auth-container, .main-view-container {
+             display: none;
+        }
+        /* Show the active container */
+        #auth-container.active, .main-view-container.active {
+            display: flex; /* Use flex for centering content */
+        }
+        /* Override display for auth container and its forms */
+        #auth-container.active {
+             display: block;
+        }
+        #auth-container.active .form-section.active {
+             display: block;
+        }
+
+        /* --- Watermark Style --- */
+        .watermark {
+            position: fixed;
+            bottom: 10px; /* Position from bottom */
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust horizontal centering */
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6); /* Brighter white */
+            z-index: 2; /* Below main content, above background effects */
+            pointer-events: none; /* Non-interactive */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+    </style>
+</head>
+<body>
+    <div id="background-flash"></div>
+    <div id="lightning-container-left"></div>
+    <div class="light-ray-container">
+        <div class="light-ray ray-green"></div>
+        <div class="light-ray ray-red"></div>
+    </div>
+    <div id="fireworks-container" class="fireworks-container"></div>
+
+    <div class="container active" id="auth-container">
+        <h2 class="form-header">Wizards and Witches Login</h2>
+        <form id="login-form" class="form-section active">
+            <div id="login-loading" class="loading-indicator">Loading...</div>
+            <div id="login-fields">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password">
+                </div>
+                <div class="keep-logged-in">
+                    <input type="checkbox" id="keep-logged-in" name="keepLoggedIn">
+                    <label for="keep-logged-in">Keep me logged in</label>
+                </div>
+                <button class="action-button" type="submit">Login</button>
+                <div class="link-group">
+                    <a href="#" id="forgot-password-link">Forgot Password?</a>
+                </div>
+                <div class="link-group">
+                    <a href="#" class="register-link">New user? Register here</a>
+                </div>
+                <div id="login-message-box" class="message-box"></div>
+            </div>
+        </form>
+        <form id="registration-form" class="form-section">
+            <div class="input-group">
+                <label for="user-name">Username</label>
+                <input type="text" id="user-name" name="username" placeholder="e.g., MagicalUser123">
+            </div>
+            <div class="input-group">
+                 <label for="register-email">Email Address</label>
+                <input type="email" id="register-email" name="registerEmail" placeholder="e.g., wizard@hogwarts.edu" required>
+            </div>
+            <div class="input-group">
+                <label for="register-password">Password</label>
+                <input type="password" id="register-password" name="registerPassword" placeholder="Choose a strong password" required>
+            </div>
+            <div class="input-group">
+                <label for="register-confirm-password">Confirm Password</label>
+                <input type="password" id="register-confirm-password" name="registerConfirmPassword" placeholder="Re-enter your password" required>
+            </div>
+            <button class="action-button" type="submit">Register</button>
+            <div class="link-group">
+                <a href="#" class="login-link">Already have an account? Login</a>
+            </div>
+             <div id="register-message-box" class="message-box"></div>
+        </form>
+        <form id="forgot-password-form" class="form-section">
+             <p style="color: #ccc; margin-bottom: 15px;">Enter your email address to receive a password reset link.</p>
+             <div class="input-group">
+                <label for="forgot-email">Email Address</label>
+                <input type="email" id="forgot-email" name="forgotEmail" placeholder="Enter your registered email" required>
+             </div>
+             <button class="action-button" type="submit">Send Reset Link</button>
+             <div class="link-group">
+                <a href="#" class="login-link">Remembered your password? Login</a>
+             </div>
+             <div id="forgot-message-box" class="message-box"></div>
+        </form>
+    </div>
+
+    <div class="main-view-container" id="welcome-container">
+         <h1>Welcome to Hogwarts, <span id="welcome-username"></span>!</h1>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Hogwarts-Crest.png/600px-Hogwarts-Crest.png?20210328175300"
+             alt="Hogwarts Crest"
+             class="hogwarts-crest"
+             onerror="this.onerror=null; this.src='https://placehold.co/160x190/0a0a14/ffd700?text=Hogwarts'; this.alt='Hogwarts Placeholder';">
+        <p>
+            You have successfully entered the realm of magic and witchcraft. Prepare yourself for a journey filled with adventure,
+            friendship, and the mysteries of Hogwarts School of Witchcraft and Wizardry.
+        </p>
+        <button class="continue-journey-button" id="continue-journey-button">Click me to continue your journey</button>
+    </div>
+
+    <div class="main-view-container" id="congratulation-container">
+        <div class="owl-icon">🦉</div>
+        <h1>Congratulations, <span id="congrats-username"></span>!</h1>
+        <p>
+            Your owl has arrived! You have successfully signed up for Hogwarts School of Witchcraft and Wizardry. Prepare for a magical journey!
+        </p>
+        <button class="proceed-button" id="proceed-to-login-button">Proceed to Login</button>
+    </div>
+
+    <div class="main-view-container" id="journey-container">
+        <h1>Your Magical Journey Begins!</h1>
+        <p>
+            The castle awaits... Explore the corridors, attend classes, and uncover the secrets hidden within these ancient walls.
+        </p>
+        <img src="https://static1.cbrimages.com/wordpress/wp-content/uploads/2024/11/november-14-will-be-a-magical-day-for-harry-potter-fans.jpg?q=49&fit=crop&w=480&h=&dpr=2"
+             alt="Hogwarts Castle"
+             class="journey-image"
+             onerror="this.onerror=null; this.src='https://placehold.co/400x250/1a1a2e/f0e68c?text=Adventure+Awaits'; this.alt='Placeholder Image';">
+        <p>What path will you choose?</p>
+        <div class="house-choice-container">
+            <button class="house-choice-button house-gryffindor" data-house="Gryffindor">Gryffindor</button>
+            <button class="house-choice-button house-hufflepuff" data-house="Hufflepuff">Hufflepuff</button>
+            <button class="house-choice-button house-ravenclaw" data-house="Ravenclaw">Ravenclaw</button>
+            <button class="house-choice-button house-slytherin" data-house="Slytherin">Slytherin</button>
+        </div>
+        <button class="return-button" id="journey-return-to-login-button">Return to Login</button>
+    </div>
+
+    <div class="main-view-container house-page" id="gryffindor-page">
+        <h2>Gryffindor</h2>
+        <p>
+            "You might belong in Gryffindor,<br>
+            Where dwell the brave at heart,<br>
+            Their daring, nerve, and chivalry<br>
+            Set Gryffindors apart."
+        </p>
+        <p>Welcome, brave lion! Your journey of courage begins now.</p>
+        <button class="return-button house-return-button">Return</button>
+    </div>
+
+    <div class="main-view-container house-page" id="hufflepuff-page">
+        <h2>Hufflepuff</h2>
+        <p>
+            "You might belong in Hufflepuff,<br>
+            Where they are just and loyal,<br>
+            Those patient Hufflepuffs are true<br>
+            And unafraid of toil."
+        </p>
+        <p>Welcome, loyal badger! Your journey of dedication begins now.</p>
+        <button class="return-button house-return-button">Return</button>
+    </div>
+
+    <div class="main-view-container house-page" id="ravenclaw-page">
+        <h2>Ravenclaw</h2>
+        <p>
+            "Or yet in wise old Ravenclaw,<br>
+            If you've a ready mind,<br>
+            Where those of wit and learning,<br>
+            Will always find their kind."
+        </p>
+        <p>Welcome, wise raven! Your journey of intellect begins now.</p>
+        <button class="return-button house-return-button">Return</button>
+    </div>
+
+    <div class="main-view-container house-page" id="slytherin-page">
+        <h2>Slytherin</h2>
+        <p>
+            "Or perhaps in Slytherin<br>
+            You'll make your real friends,<br>
+            Those cunning folk use any means<br>
+            To achieve their ends."
+        </p>
+        <p>Welcome, ambitious serpent! Your journey of cunning begins now.</p>
+        <button class="return-button house-return-button">Return</button>
+    </div>
+
+    <div class="watermark">gelouorfanopersonal@gmail.com</div>
+
+    <script>
+        // Get DOM elements
+        const authContainer = document.getElementById('auth-container');
+        const welcomeContainer = document.getElementById('welcome-container');
+        const congratulationContainer = document.getElementById('congratulation-container');
+        const journeyContainer = document.getElementById('journey-container');
+        const gryffindorPage = document.getElementById('gryffindor-page');
+        const hufflepuffPage = document.getElementById('hufflepuff-page');
+        const ravenclawPage = document.getElementById('ravenclaw-page');
+        const slytherinPage = document.getElementById('slytherin-page');
+
+        // Forms & Controls
+        const loginForm = document.getElementById('login-form');
+        const registrationForm = document.getElementById('registration-form');
+        const forgotPasswordForm = document.getElementById('forgot-password-form');
+        const forgotEmailInput = document.getElementById('forgot-email');
+        const forgotMessageBox = document.getElementById('forgot-message-box');
+
+        const registerLinks = document.querySelectorAll('.register-link');
+        const loginLinks = document.querySelectorAll('.login-link');
+        const forgotPasswordLink = document.getElementById('forgot-password-link');
+        const loginMessageBox = document.getElementById('login-message-box');
+        const registerMessageBox = document.getElementById('register-message-box');
+        const formHeader = document.querySelector('.form-header');
+        const continueJourneyButton = document.getElementById('continue-journey-button');
+        const proceedToLoginButton = document.getElementById('proceed-to-login-button');
+        const welcomeUsernameSpan = document.getElementById('welcome-username');
+        const congratsUsernameSpan = document.getElementById('congrats-username');
+        const houseChoiceButtons = document.querySelectorAll('.house-choice-button');
+        const journeyReturnToLoginButton = document.getElementById('journey-return-to-login-button');
+        const houseReturnButtons = document.querySelectorAll('.house-return-button');
+        const loginLoadingIndicator = document.getElementById('login-loading');
+        const loginFieldsWrapper = document.getElementById('login-fields');
+        const keepLoggedInCheckbox = document.getElementById('keep-logged-in');
+
+
+        // Effects Containers
+        const fireworksContainer = document.getElementById('fireworks-container');
+        const lightningContainer = document.getElementById('lightning-container-left');
+
+        // Store all main view containers in an array for easier management
+        const allMainViewContainers = [
+            authContainer, welcomeContainer, congratulationContainer, journeyContainer,
+            gryffindorPage, hufflepuffPage, ravenclawPage, slytherinPage
+        ];
+
+        // Define background images for different states
+        const backgroundImages = {
+            default: 'url("https://miro.medium.com/v2/resize:fit:1920/1*xvzYyhbE2UOx8oQzPP0O_A.jpeg")',
+            journey: 'url("https://wallpapercat.com/w/full/0/3/0/2164074-2000x1125-desktop-hd-hogwarts-castle-background-photo.jpg")',
+            gryffindor: 'url("https://media.minalima.com/2023/09/option-1-gallery-02-hpp16-1300x1300.jpg")', // Lion
+            hufflepuff: 'url("https://i.pinimg.com/736x/98/d5/4d/98d54db05224f5b6d69325ed9fe8f4a2.jpg")', // Badger-like
+            ravenclaw: 'url("https://i.pinimg.com/736x/ba/70/f8/ba70f881a8d2966b48fd2315d5c7464f.jpg")', // Raven
+            slytherin: 'url("https://i.pinimg.com/736x/ec/1f/04/ec1f04612fe14084aba71a2b92047d16.jpg")' // Snake
+        };
+
+        // --- localStorage Helper Functions ---
+        const USERS_STORAGE_KEY = 'hogwartsUsers';
+
+        // Function to get users from localStorage
+        function getStoredUsers() {
+            const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
+            try {
+                return usersJson ? JSON.parse(usersJson) : [];
+            } catch (e) {
+                console.error("Error parsing users from localStorage", e);
+                return []; // Return empty array on error
+            }
+        }
+
+        // Function to save users to localStorage
+        function saveUsers(users) {
+            try {
+                localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+            } catch (e) {
+                console.error("Error saving users to localStorage", e);
+                // Handle potential storage errors (e.g., quota exceeded)
+                alert("Could not save user data. Storage might be full.");
+            }
+        }
+
+        // Function to add a new user
+        function addUser(username, email, password) {
+            const users = getStoredUsers();
+            // Check for uniqueness (redundant check, but good practice)
+            const userExists = users.some(user => user.username === username || user.email === email);
+            if (userExists) {
+                console.error("Attempted to add duplicate user.");
+                return false; // Indicate failure
+            }
+            // **INSECURE:** Storing plain text password for demo only
+            users.push({ username, email, password });
+            saveUsers(users);
+            return true; // Indicate success
+        }
+
+        // Function to find a user by username
+        function findUser(username) {
+            const users = getStoredUsers();
+            return users.find(user => user.username === username);
+        }
+        // --- End localStorage Helper Functions ---
+
+
+        // Function to show a specific main container and set background
+        function showMainContainer(containerIdToShow) {
+            let targetBackground = backgroundImages.default; // Default background
+
+            allMainViewContainers.forEach(container => {
+                const isActive = container.id === containerIdToShow;
+                container.classList.toggle('active', isActive);
+
+                // Determine background based on the active container
+                if (isActive) {
+                    switch (containerIdToShow) {
+                        case 'journey-container':
+                            targetBackground = backgroundImages.journey;
+                            break;
+                        case 'gryffindor-page':
+                            targetBackground = backgroundImages.gryffindor;
+                            break;
+                        case 'hufflepuff-page':
+                            targetBackground = backgroundImages.hufflepuff;
+                            break;
+                        case 'ravenclaw-page':
+                            targetBackground = backgroundImages.ravenclaw;
+                            break;
+                        case 'slytherin-page':
+                            targetBackground = backgroundImages.slytherin;
+                            break;
+                        // For auth, welcome, congrats, use default background
+                        default:
+                            targetBackground = backgroundImages.default;
+                    }
+                }
+            });
+
+            // Apply the determined background image
+            document.body.style.backgroundImage = targetBackground;
+
+            // Special handling for auth container structure
+            if (containerIdToShow === 'auth-container') {
+                // Default to showing login form when auth container is shown
+                switchAuthForm(loginForm, registrationForm, forgotPasswordForm);
+                // Clear username spans when returning to login
+                welcomeUsernameSpan.textContent = '';
+                congratsUsernameSpan.textContent = '';
+                // Ensure login fields are visible and loading is hidden
+                loginFieldsWrapper.style.display = 'block';
+                loginLoadingIndicator.style.display = 'none';
+            }
+
+            // Clear message boxes when switching main containers
+            loginMessageBox.style.display = 'none';
+            loginMessageBox.textContent = '';
+            registerMessageBox.style.display = 'none';
+            registerMessageBox.textContent = '';
+            forgotMessageBox.style.display = 'none';
+            forgotMessageBox.textContent = '';
+        }
+
+
+        // Function to switch between login, registration, and forgot password forms
+        function switchAuthForm(formToShow, formToHide1, formToHide2) {
+            // Hide all forms first
+            loginForm.classList.remove('active');
+            registrationForm.classList.remove('active');
+            forgotPasswordForm.classList.remove('active'); // Hide forgot password form too
+
+            // Show the target form
+            formToShow.classList.add('active');
+
+            // Update header text
+            if (formToShow === loginForm) {
+                formHeader.textContent = "Wizards and Witches Login";
+                 // Ensure login fields are visible and loading is hidden when switching TO login
+                loginFieldsWrapper.style.display = 'block';
+                loginLoadingIndicator.style.display = 'none';
+            } else if (formToShow === registrationForm) {
+                formHeader.textContent = "Wizards and Witches Registration";
+            } else if (formToShow === forgotPasswordForm) {
+                formHeader.textContent = "Reset Password";
+            }
+
+            // Clear message boxes within the auth container
+            loginMessageBox.style.display = 'none';
+            loginMessageBox.textContent = '';
+            registerMessageBox.style.display = 'none';
+            registerMessageBox.textContent = '';
+            forgotMessageBox.style.display = 'none';
+            forgotMessageBox.textContent = '';
+
+            // Ensure the parent auth container is active
+            authContainer.classList.add('active');
+        }
+
+        // --- Fireworks Function ---
+        function launchFireworks() {
+            fireworksContainer.style.display = 'block';
+            fireworksContainer.innerHTML = '';
+            const numParticles = 60;
+            const colors = ['#FFD700', '#C0C0C0', '#FF4E50', '#4B8BFF', '#50C878', '#FF69B4'];
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const x = (Math.random() * 90 + 5) + 'vw';
+                const y = (Math.random() * 50 + 10) + 'vh';
+                particle.style.left = x;
+                particle.style.top = y;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.backgroundColor = color;
+                particle.style.color = color;
+                particle.style.animationDelay = Math.random() * 0.6 + 's';
+                fireworksContainer.appendChild(particle);
+            }
+            setTimeout(() => {
+                fireworksContainer.style.display = 'none';
+                fireworksContainer.innerHTML = '';
+                showMainContainer('welcome-container'); // Show welcome page
+            }, 1800);
+        }
+
+        // --- Lightning Function ---
+        function createLightningBolt() {
+            const boltContainer = document.createElement('div');
+            boltContainer.style.position = 'absolute';
+            boltContainer.style.top = '0';
+            boltContainer.style.left = (Math.random() * 80 + 10) + '%';
+            boltContainer.style.height = '100%';
+            boltContainer.style.width = '0';
+            const fragmentCount = Math.floor(Math.random() * 5) + 5;
+            let currentY = 0;
+            let currentX = 0;
+            const segmentLengthPercent = 100 / fragmentCount;
+            for (let i = 0; i < fragmentCount; i++) {
+                const segment = document.createElement('div');
+                segment.classList.add('lightning-segment');
+                const segmentHeight = (Math.random() * 0.5 + 0.75) * segmentLengthPercent;
+                const nextX = currentX + (Math.random() * 100 - 50);
+                const angle = Math.atan2(segmentHeight, nextX - currentX) * (180 / Math.PI);
+                const distance = Math.sqrt(Math.pow(nextX - currentX, 2) + Math.pow(segmentHeight * window.innerHeight / 100, 2));
+                segment.style.width = (Math.random() * 2 + 2) + 'px';
+                segment.style.height = distance + 'px';
+                segment.style.left = currentX + 'px';
+                segment.style.top = currentY + '%';
+                segment.style.transformOrigin = 'top left';
+                segment.style.transform = `rotate(${angle - 90}deg)`;
+                segment.style.animationDelay = (Math.random() * 0.05) + 's';
+                boltContainer.appendChild(segment);
+                currentY += segmentHeight;
+                currentX = nextX;
+            }
+            lightningContainer.appendChild(boltContainer);
+            setTimeout(() => {
+                if (lightningContainer.contains(boltContainer)) {
+                     lightningContainer.removeChild(boltContainer);
+                }
+            }, 250);
+        }
+        function scheduleLightning() {
+            createLightningBolt();
+            setTimeout(scheduleLightning, Math.random() * 5000 + 3000);
+        }
+
+
+        // --- Event Listeners ---
+
+        registerLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                // Show registration, hide login and forgot password
+                switchAuthForm(registrationForm, loginForm, forgotPasswordForm);
+            });
+        });
+
+        loginLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                 // Show login, hide registration and forgot password
+                switchAuthForm(loginForm, registrationForm, forgotPasswordForm);
+            });
+        });
+
+        // *** MODIFIED: Login form submission handler with localStorage check ***
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value; // Don't trim password
+            const keepLoggedIn = keepLoggedInCheckbox.checked;
+
+            // Clear previous message
+            loginMessageBox.className = 'message-box';
+            loginMessageBox.style.display = 'none';
+            loginMessageBox.textContent = '';
+
+            // Show loading indicator, hide fields
+            loginFieldsWrapper.style.display = 'none';
+            loginLoadingIndicator.style.display = 'block';
+
+            // Simulate network delay/authentication check
+            setTimeout(() => {
+                // Hide loading indicator
+                loginLoadingIndicator.style.display = 'none';
+
+                // --- Check localStorage ---
+                const user = findUser(username);
+                // **INSECURE:** Comparing plain text passwords
+                if (user && user.password === password) {
+                    console.log('Login successful!');
+                    console.log(`Keep me logged in: ${keepLoggedIn}`);
+                    // NOTE: Actual "keep me logged in" requires server-side logic.
+
+                    welcomeUsernameSpan.textContent = username; // Set username on welcome screen
+                    usernameInput.value = '';
+                    passwordInput.value = '';
+                    // Hide auth container and launch fireworks (which then shows welcome)
+                    authContainer.classList.remove('active');
+                    launchFireworks();
+                } else {
+                    // Show fields again
+                    loginFieldsWrapper.style.display = 'block';
+                    // Display error message
+                    loginMessageBox.textContent = 'Invalid username or password.';
+                    loginMessageBox.classList.add('error'); // Add error class
+                    loginMessageBox.style.display = 'block';
+                    passwordInput.value = ''; // Clear only password
+                    keepLoggedInCheckbox.checked = false; // Uncheck on failed login
+                }
+            }, 1000); // Simulate 1 second delay
+        });
+
+        // *** MODIFIED: Registration form submission handler with localStorage check/save ***
+        registrationForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent form submission
+
+            const usernameInput = document.getElementById('user-name');
+            const emailInput = document.getElementById('register-email');
+            const passwordInput = document.getElementById('register-password');
+            const confirmPasswordInput = document.getElementById('register-confirm-password');
+
+            registerMessageBox.className = 'message-box'; // Reset class
+            registerMessageBox.style.display = 'none';
+            registerMessageBox.textContent = '';
+            let isValid = true;
+
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            // --- Validation ---
+            if (!username) { registerMessageBox.textContent = "Please enter a username."; isValid = false; }
+            else if (!email) { registerMessageBox.textContent = "Please enter an email address."; isValid = false; }
+            else if (!emailRegex.test(email)) { registerMessageBox.textContent = "Please enter a valid email address."; isValid = false; }
+            else if (!password) { registerMessageBox.textContent = "Please enter a password."; isValid = false; }
+            else if (password.length < 6) { registerMessageBox.textContent = "Password must be at least 6 characters long."; isValid = false; }
+            else if (!confirmPassword) { registerMessageBox.textContent = "Please confirm your password."; isValid = false; }
+            else if (password !== confirmPassword) { registerMessageBox.textContent = "Passwords do not match."; isValid = false; }
+
+            if (!isValid) {
+                registerMessageBox.classList.add('error'); // Add error class
+                registerMessageBox.style.display = 'block'; // Show the first validation error found
+                passwordInput.value = '';
+                confirmPasswordInput.value = '';
+                return; // Stop submission if validation fails
+            }
+
+            // --- Check localStorage for existing user ---
+            const users = getStoredUsers();
+            const usernameExists = users.some(user => user.username === username);
+            const emailExists = users.some(user => user.email === email);
+
+            if (usernameExists) {
+                 registerMessageBox.textContent = "Username already taken.";
+                 isValid = false;
+            } else if (emailExists) {
+                 registerMessageBox.textContent = "Email address already registered.";
+                 isValid = false;
+            }
+
+            if (!isValid) {
+                 registerMessageBox.classList.add('error');
+                 registerMessageBox.style.display = 'block';
+                 passwordInput.value = '';
+                 confirmPasswordInput.value = '';
+                 return;
+            }
+
+            // --- Registration Success ---
+            // **INSECURE:** Storing plain text password for demo only
+            if (addUser(username, email, password)) {
+                console.log('Registration successful & saved to localStorage');
+                congratsUsernameSpan.textContent = username; // Set username on congratulations screen
+                registrationForm.reset(); // Clear the registration form fields
+                showMainContainer('congratulation-container'); // Show congrats page
+            } else {
+                 // Handle potential saving error (though addUser logs it)
+                 registerMessageBox.textContent = "Failed to save registration data.";
+                 registerMessageBox.classList.add('error');
+                 registerMessageBox.style.display = 'block';
+            }
+        });
+
+        // Forgot password link handler
+        forgotPasswordLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            // Show forgot password form, hide login and registration
+            switchAuthForm(forgotPasswordForm, loginForm, registrationForm);
+        });
+
+        // Forgot password form submission handler
+        forgotPasswordForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const email = forgotEmailInput.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            forgotMessageBox.className = 'message-box'; // Reset class list
+            forgotMessageBox.textContent = ''; // Clear previous message
+            forgotMessageBox.style.display = 'none';
+
+            if (!email) {
+                forgotMessageBox.textContent = 'Please enter your email address.';
+                forgotMessageBox.classList.add('error');
+                forgotMessageBox.style.display = 'block';
+            } else if (!emailRegex.test(email)) {
+                forgotMessageBox.textContent = 'Please enter a valid email address.';
+                forgotMessageBox.classList.add('error');
+                forgotMessageBox.style.display = 'block';
+            } else {
+                // Simulate sending email
+                console.log(`Password reset requested for: ${email}`);
+                // Check if email exists in storage (optional, but good UX)
+                const users = getStoredUsers();
+                const emailFound = users.some(user => user.email === email);
+                if (emailFound) {
+                    forgotMessageBox.textContent = 'If an account exists for this email, a password reset link has been sent (simulated).';
+                    forgotMessageBox.classList.add('success');
+                } else {
+                    // Still show success to prevent email enumeration
+                    forgotMessageBox.textContent = 'If an account exists for this email, a password reset link has been sent (simulated).';
+                    forgotMessageBox.classList.add('success');
+                    console.log("Email not found in storage, but showing generic success message.");
+                }
+                forgotMessageBox.style.display = 'block';
+                forgotEmailInput.value = ''; // Clear the input field
+            }
+        });
+
+
+        continueJourneyButton.addEventListener('click', () => {
+            console.log('Continue journey clicked');
+            showMainContainer('journey-container'); // Show house selection page
+        });
+
+        proceedToLoginButton.addEventListener('click', () => {
+             showMainContainer('auth-container'); // Show login page
+        });
+
+        // Event listener for the "Return to Login" button on the journey page
+        journeyReturnToLoginButton.addEventListener('click', () => {
+             console.log('Return to Login button clicked');
+             showMainContainer('auth-container'); // Show login page
+        });
+
+        // Event listener for the "Return" buttons on the house pages
+        houseReturnButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                console.log('House page Return button clicked');
+                // Show the journey container (house selection)
+                showMainContainer('journey-container');
+            });
+        });
+
+
+        // Event listener for house choice buttons
+        houseChoiceButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const chosenHouse = event.target.dataset.house; // Gryffindor, Hufflepuff, etc.
+                console.log(`Chosen house: ${chosenHouse}`);
+                // Determine the ID of the page to show
+                const targetPageId = `${chosenHouse.toLowerCase()}-page`; // e.g., gryffindor-page
+                // Show the corresponding house page and set background
+                showMainContainer(targetPageId);
+            });
+        });
+
+
+        // --- Initializations ---
+        setTimeout(scheduleLightning, 1500);
+        showMainContainer('auth-container'); // Show login form initially
+
+    </script>
+</body>
+</html>
