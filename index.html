@@ -65,12 +65,14 @@
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
-            width: 340px;
+            /* *** MODIFIED: Use percentage width and max-width for responsiveness *** */
+            width: 90%; /* Occupy 90% of parent width */
+            max-width: 360px; /* Limit maximum width on larger screens */
             text-align: center;
-            max-width: 90%;
             z-index: 3; /* Above watermark */
             margin-bottom: 20px; /* Space between container and bottom */
             position: relative; /* Keep relative for positioning context */
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
         }
         .container h2.form-header { margin-bottom: 25px; color: #f5f5f5; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
         .input-group { margin-bottom: 18px; text-align: left; }
@@ -96,6 +98,7 @@
             display: none; /* Hidden by default */
             text-align: center;
             border: 1px solid transparent;
+            word-break: break-word; /* Allow long messages to wrap */
         }
         .message-box.error {
              color: #ff6b6b;
@@ -160,8 +163,8 @@
              padding: 35px 45px;
              border-radius: 15px;
              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-             width: 90%;
-             max-width: 750px;
+             width: 90%; /* Responsive width */
+             max-width: 750px; /* Limit max width */
              text-align: center;
              display: none; /* Hidden by default */
              flex-direction: column;
@@ -171,6 +174,7 @@
              margin-bottom: 20px;
              position: relative; /* Needed for z-index */
              color: #e0e0e0;
+             box-sizing: border-box; /* Include padding/border in width */
         }
         /* Override for congratulation container */
         #congratulation-container { background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); max-width: 550px; color: #333; border: none; }
@@ -198,13 +202,13 @@
         /* --- Journey Container Specific Styles --- */
         #journey-container h1 { color: #f0e68c; margin-bottom: 20px; font-size: 2.5em; text-shadow: 2px 2px 5px rgba(0,0,0,0.7); }
         #journey-container p { font-size: 1.1em; margin-bottom: 20px; line-height: 1.6; color: #ddd; }
-        #journey-container .journey-image { /* Changed class name */
+        #journey-container .journey-image {
              border-radius: 8px;
              margin-bottom: 25px;
              max-width: 80%;
              height: auto;
-             border: 1px solid rgba(255, 215, 0, 0.5); /* Add subtle border */
-             box-shadow: 0 4px 10px rgba(0,0,0,0.5); /* Add shadow */
+             border: 1px solid rgba(255, 215, 0, 0.5);
+             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .house-choice-container { margin-top: 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .house-choice-button { color: white; padding: 10px 18px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.3); min-width: 120px; }
@@ -742,7 +746,7 @@
             });
         });
 
-        // *** MODIFIED: Login form submission handler with localStorage check ***
+        // Login form submission handler
         loginForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const usernameInput = document.getElementById('username');
@@ -792,7 +796,7 @@
             }, 1000); // Simulate 1 second delay
         });
 
-        // *** MODIFIED: Registration form submission handler with localStorage check/save ***
+        // Registration form submission handler
         registrationForm.addEventListener('submit', (event) => {
             event.preventDefault(); // Prevent form submission
 
